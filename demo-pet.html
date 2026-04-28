@@ -1,0 +1,180 @@
+<!DOCTYPE html> 
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Stranger Tamagotchi</title>
+    <style> 
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #050505;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        #pet-container {
+            background: #111;
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 0 40px rgba(233, 69, 96, 0.2);
+            width: 350px;
+            text-align: center;
+            border: 2px solid #333;
+        }
+
+        h1 { color: #e94560; text-transform: uppercase; font-size: 24px; margin-bottom: 20px; }
+
+        /* Изображение нашего демопса :3 */
+        #pet-img {
+            width: 180px;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 4px solid #e94560;
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+        #pet-img:active { transform: scale(1.1); }
+
+        /* Статистика */
+        .stat-label { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; }
+        
+        .bar-bg {
+            width: 100%;
+            background: #222;
+            height: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 1px solid #444;
+        }
+
+        .bar-fill {
+            height: 100%;
+            width: 100%;
+            background: #28a745; /* Начальный зеленый */
+            transition: width 0.5s ease, background 0.5s ease;
+        }
+
+        /* Кнопки */
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        button {
+            background: #1a1a2e;
+            color: white;
+            border: 2px solid #e94560;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        button:hover { background: #e94560; transform: translateY(-2px); }
+        button:active { transform: translateY(0); }
+
+        /* Эффект смерти */
+        .dead { filter: grayscale(1) blur(2px); pointer-events: none; }
+    </style>
+</head>
+<body>
+
+<div id="pet-container">
+    <h1 id="status-text">Живой Демо-Пёс</h1>
+    
+    <img id="pet-img" src="happy.jpg" alt="Pet">
+
+    <div class="stats">
+        <div class="stat-label"><span>Сытость</span><span id="hunger-val">100%</span></div>
+        <div class="bar-bg"><div id="hunger-bar" class="bar-fill"></div></div>
+
+        <div class="stat-label"><span>Счастье</span><span id="happiness-val">100%</span></div>
+        <div class="bar-bg"><div id="happiness-bar" class="bar-fill"></div></div>
+    </div>
+
+    <div class="controls">
+        <button onclick="feed()">Дать нугу 🍫</button>
+        <button onclick="play()">Поиграть 🎾</button>
+    </div>
+</div>
+
+<script>
+    // Состояние пёсика
+    let hunger = 100;
+    let happiness = 100;
+    let isAlive = true;
+
+    // Главный цикл игры (каждые 1.5 секунды)
+    const gameClock = setInterval(() => {
+        if (!isAlive) return;
+
+        // Постепенно уменьшаем показатели
+        hunger -= 3;
+        happiness -= 2;
+
+        updateUI();
+        checkStatus();
+    }, 1500);
+
+    function updateUI() {
+        // Ограничиваем значения от 0 до 100
+        hunger = Math.max(0, hunger);
+        happiness = Math.max(0, happiness);
+
+        // Обновляем ширину полосок
+        const hBar = document.getElementById('hunger-bar');
+        const haBar = document.getElementById('happiness-bar');
+        
+        hBar.style.width = hunger + "%";
+        haBar.style.width = happiness + "%";
+
+        // Обновляем текст процентов
+        document.getElementById('hunger-val').innerText = hunger + "%";
+        document.getElementById('happiness-val').innerText = happiness + "%";
+        // ЛОГИКА ЦВЕТА: Если мало — красный, если ок — зеленый
+        hBar.style.background = hunger < 30 ? "#dc3545" : "#28a745";
+        haBar.style.background = happiness < 30 ? "#dc3545" : "#28a745";
+
+        // Смена картинки (эмоции)
+        const img = document.getElementById('pet-img');
+        if (hunger < 40 || happiness < 40) {
+            img.src = "hungry.png"; //грустный пёсик :(
+        } else {
+            img.src = "demo.png"; //Весёлый пёсик ^^
+        }
+    }
+
+    function feed() {
+        if (!isAlive) return;
+        hunger = Math.min(100, hunger + 25);
+        updateUI();
+    }
+
+    function play() {
+        if (!isAlive) return;
+        happiness = Math.min(100, happiness + 20);
+        updateUI();
+    }
+
+    function checkStatus() {
+        if (hunger <= 0 || happiness <= 0) {
+            isAlive = false;
+            clearInterval(gameClock);
+            
+            document.getElementById('status-text').innerText = "Ушел в Изнанку...";
+            document.getElementById('pet-container').classList.add('dead');
+            
+            // Через 3 секунды предлагается начать заново :>
+            setTimeout(() => {
+                if(confirm("Твой питомец покинул Хокинс. Начать заново?")) {
+                    location.reload();
+                }
+            }, 500);
+        }
+    }
+</script>
+
+</body>
+</html>
